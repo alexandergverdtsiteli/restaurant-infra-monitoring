@@ -1,0 +1,8 @@
+ALERT tomcat_down
+  IF absent(container_memory_usage_bytes{name="tomcat"})
+  FOR 10s
+  LABELS { severity = "critical" }
+  ANNOTATIONS {
+  summary= "tomcat offline"
+  description= "tomcat offline если не потребляет памяти"
+  }

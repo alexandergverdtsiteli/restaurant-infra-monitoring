@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 20s
+  evaluation_interval: 20s
+
+  #title для GUI
+  external_labels: monitor: 'Docker-restaurant-monitor'
+
+  #правило для томкат
+  rule_config:
+    - containers.rules""
+
+  #listen
+  - job_name: 'restaurant_prometheus'
+  scrape_interval: 25s
+  static_configs:
+    - target: ['localhost:9090']
+
+  scrape_configs:
+    - job_name: 'restaurant_nodeexporter'
+    scrape_interval: 15s
+    static_configs:
+      - target: ['nodeexporter:9100']
+
+    - job_name: 'restaurant_cadvisor'
+    scrape_interval: 20s
+    static_configs:
+      - target: ['cadvisor:8080']

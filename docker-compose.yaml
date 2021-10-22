@@ -1,0 +1,94 @@
+version: '3'
+
+services:version: '3'
+
+networks:
+  - restaurant_network:
+    driver:bridge
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: restaurant_prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '-config.file=/etc/prometheus/prometheus.yml'
+      - '-storage.local.path=/prometheus'
+      - '-alertmanager.url=http://alertmanager:9093'
+      - '-storage.local.memory-chunk=100000'
+    restart: unless-stopped
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+    networks:
+      - restaurant_network
+    labels:
+      org.label-schema.group: "Мониторинг для контейнеров монорепозитория restaurant"
+
+  nodeexporter:
+    image: prom/node-exporter
+    container_name: restaurant_nodeexporter
+    restart: unless-stopped
+    expose:
+      - 9100
+    networks:
+      - restaurant_network
+    labels:
+      org.label-schema.group: "Мониторинг для контейнеров монорепозитория restaurant"
+
+  cadvisor:
+    image: google/cadvisor:v0.26.1
+    container_name: restaurant_cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    expose:
+      - 8080
+    networks:
+      - restaurant_network
+    labels:
+      org.label-schema.group: "Мониторинг для контейнеров монорепозитория restaurant"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - grafana/user.config
+    restart: unless-stoped
+    expose: 3000
+    ports:
+      - 3000:3000
+    networks:
+      - restaurant_network
+    labels:
+      org.label-schema.group: "Мониторинг для контейнеров монорепозитория restaurant"
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager_restaurant
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    command:
+      - '-config.file=/etc/alertmanager/config.yml'
+      - '-storage.path=/alertmanager'
+    restart: unless-stopped
+    expose:
+      - 9093
+    ports:
+      - 9093:9093
+    networks:
+      - restaurant_network
+    labels:
+      org.label-schema.group: "Мониторинг для контейнеров монорепозитория restaurant"
